@@ -1,0 +1,36 @@
+v2.0 - 2018/08/09
+1. Combined the Byte counter and Packet counter. Difference between those two in origin code is whether to set PktCnt_temp = 1, and the scale parameters.
+2. Notice that mainly difference on results are on the access time where LRU_2 Byte counter may filled full more quickly and costs more access time. But in combined code we care about the bottleneck of access time so results may seems the same as original Byte counter code.
+
+v2.5 - 2018/08/09
+1.  Improve the tip 2 of v2.0, that access_time is devided into pkt_access_time and byte_access_time.
+2.  Added average packet stastic, total_byte_count, average_pkt_size, dram_consumption and sram_consumption.
+
+v2.6 - 2018/08/10
+1.  Deleted all Chinese comments and save as UTF-8 coding.
+2.  Deleted evict function(if need can be found in v2.0).
+3.  Forget to save v2.5 so everything from v2.0.
+4.  Changed TH to Byte in this version.
+
+v2.65 - 2018/08/10
+1.  Changed update.log organization.
+2.  v2.65 is command version of v2.6
+3.  v2.65 command is used as
+    .\name.txt PKT_TH BYTE_TH CACHESIZE TRACE
+4.  updated and fixed bug after v2.75 released.
+
+v2.75 - 2018/08/10
+1.  Fixed bug in line 428 that 
+    if(Pkt_upscale_temp == true || Byte_upscale_temp == true)
+    so in previous version its a bug...
+2.  Fixed bug that SRAM consumption is not added new one in line 428.
+
+**BUG WARNING: a bug in 4 shows version before v2.65 should fix.
+
+v2.85 - 2018/08/11
+1.  Added sequence control function `use_command`, so after that there no more .0 and .05 function difference.
+2.  Deleted Burst Dram time from over-all time.
+
+**RELEASE: after 9 days I think this is a stable release.
+
+**WARNING: From now on this update_log is nolonger be fixed. All log can be found in `../update_log.txt`
