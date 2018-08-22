@@ -68,6 +68,8 @@ int main(int argc,char*argv[])
     static long pile_value_pkt[SUPP_FLOW];
 
     int i;
+    int Byte_upscale_temp;
+    int Pkt_upscale_temp;
     for(i=0; i<SUPP_FLOW; i++)
     {
         scale_value_byte[i] = 0;
@@ -136,8 +138,8 @@ int main(int argc,char*argv[])
     double comb_access_time = 0;
 
     //off-chip DRAM, debug, 20180129
-    int dram_consumption = 0;
-    int sram_consumption = 0; //difference from overflow_temp: overflow_time don't count for after-all write.
+    int dram_consumption = 0; //dram: once off-chip write, it will take one entry in dram.
+    int sram_consumption = 0; //difference from dram, sram uses update algorithm, so only a new flow costs a new entry.
 
     while(fscanf(fp, "%d %d", &Flow_ID_temp, &ByteCnt_temp) != EOF)
     {
@@ -237,10 +239,10 @@ int main(int argc,char*argv[])
                         temp_packet = find_user(temp_key);
                         delete_user(temp_packet);
 
-                        //debug 20180129
-                        sram_consumption ++;
-
                         //overflow to SRAM
+                        if(symb_value_byte[temp_key] == 0)
+                                sram_consumption ++;
+                        
                         if(scale_value_byte[temp_key] == 0)
                         {
                             symb_value_byte[temp_key] += (long)ByteCnt_temp;
@@ -355,12 +357,13 @@ int main(int argc,char*argv[])
             {
                 ByteCnt_temp = found_item->hash_to_list->cached_value + ByteCnt_temp;
                 PktCnt_temp = found_item->hash_to_list->cached_pkt + PktCnt_temp;
-                bool Byte_upscale_temp = false;
-                bool Pkt_upscale_temp = false;
+                Byte_upscale_temp = 1;//update recording: 1,2,4 stands for: unupdated,update,new update
+                Pkt_upscale_temp = 1;
                 if(ByteCnt_temp > LRU2_BYTE_CNT_WIDTH)
                 {
-                    Byte_upscale_temp = true;
-
+                    Byte_upscale_temp = 2;
+                    if(symb_value_byte[Flow_ID_temp] == 0)
+                        Byte_upscale_temp = 4;
                     //overflow
                     if(scale_value_byte[Flow_ID_temp] == 0)
                     {
@@ -401,7 +404,9 @@ int main(int argc,char*argv[])
                 }
                 if(PktCnt_temp > LRU2_PKT_CNT_WIDTH)
                 {
-                    Pkt_upscale_temp = true;
+                    Pkt_upscale_temp = 2;
+                    if(symb_value_pkt[Flow_ID_temp] == 0)
+                        Pkt_upscale_temp = 4;
                     if(scale_value_pkt[Flow_ID_temp] == 0)
                     {
                         symb_value_pkt[Flow_ID_temp] += (long)PktCnt_temp;
@@ -439,11 +444,15 @@ int main(int argc,char*argv[])
                     PktCnt_temp = 0;
                     pkt_access_time += CALC_TIME + OFF_CHIP_TIME*2;
                 }
-                if(Pkt_upscale_temp == true || Byte_upscale_temp == true)
+                if(Pkt_upscale_temp + Byte_upscale_temp > 2)
                 {
                     overflow_time ++;
                     comb_access_time += CALC_TIME + OFF_CHIP_TIME*2;
                     sram_trans += 2;
+                }
+                if(Pkt_upscale_temp + Byte_upscale_temp > 4)
+                {
+                    sram_consumption ++;
                 }
 
                 delete_node_pointed(list_head_2_p, found_item->hash_to_list);
@@ -496,9 +505,10 @@ int main(int argc,char*argv[])
     cache_node = list_head_2.head;
     while(cache_node != NULL)
     {
-        sram_consumption ++;
         ByteCnt_temp = cache_node->cached_value;
         PktCnt_temp = cache_node->cached_pkt;
+        if(symb_value_byte[cache_node->cached_key] == 0)
+            sram_consumption ++;
         if(scale_value_byte[cache_node->cached_key] == 0)
         {
             symb_value_byte[cache_node->cached_key] += (long)ByteCnt_temp;
