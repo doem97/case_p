@@ -1,4 +1,3 @@
-//v2.8(command version)
 #include "allmyfile.h"
 
 #define LRU2_BYTE_CNT_WIDTH 65535  //16, 2^16-1
@@ -13,7 +12,7 @@
 
 int main(int argc,char*argv[])
 {
-	bool use_command = false;
+	bool use_command = true;
     int THRES_PKT;
     int THRES_BYTE;
     double size_1_2_rate;
@@ -206,7 +205,7 @@ int main(int argc,char*argv[])
         {
             if(found_item->hash_to_list->list_head_p == list_head_1_p)//LRU_1 hit
             {
-                if(found_item -> hash_to_list -> cached_pkt + PktCnt_temp >= THRES_PKT)//from LRU_1 to LRU_2
+                if(found_item -> hash_to_list -> cached_value + ByteCnt_temp >= THRES_BYTE)//from LRU_1 to LRU_2
                     //found_item -> hash_to_list -> cached_value + ByteCnt_temp >= THRES_BYTE
                     //found_item -> hash_to_list -> cached_pkt + PktCnt_temp >= THRES_PKT
                 {
