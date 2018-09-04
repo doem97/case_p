@@ -1,4 +1,9 @@
+#folders
 bin/
 obj/
+data/
+
+#intermediate product
 *.depend
 *.layout
+*.dat

@@ -12,7 +12,7 @@
 
 int main(int argc,char*argv[])
 {
-	bool use_command = true;
+	bool use_command = false;
     int THRES_PKT;
     int THRES_BYTE;
     double size_1_2_rate;
@@ -38,7 +38,7 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_TOTAL = 1024 * 128;
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
-		fp = fopen("d:\\report_2013.txt","r");
+		fp = fopen("data\\trace\\report_2013.txt","r");
 	}
 
 	printf("%dpkt   %dbyte   %dcachesize", THRES_PKT, THRES_BYTE, CACHE_SIZE_TOTAL);
@@ -68,8 +68,6 @@ int main(int argc,char*argv[])
     static long pile_value_pkt[SUPP_FLOW];
 
     int i;
-    int Byte_upscale_temp;
-    int Pkt_upscale_temp;
     for(i=0; i<SUPP_FLOW; i++)
     {
         scale_value_byte[i] = 0;
@@ -133,9 +131,6 @@ int main(int argc,char*argv[])
 
     /*throughput*/
     double access_time = 0;//can be used in this trace
-    double byte_access_time = 0;
-    double pkt_access_time = 0;
-    double comb_access_time = 0;
 
     //off-chip DRAM, debug, 20180129
     int dram_consumption = 0; //dram: once off-chip write, it will take one entry in dram.
@@ -144,7 +139,6 @@ int main(int argc,char*argv[])
     while(fscanf(fp, "%d %d", &Flow_ID_temp, &ByteCnt_temp) != EOF)
     {
         //for pkt counting
-        //ByteCnt_temp = 1;
         PktCnt_temp = 1;
 
         if(Flow_ID_temp > total_flow_cnt)  //record the total flow count
@@ -242,7 +236,7 @@ int main(int argc,char*argv[])
                         //overflow to SRAM
                         if(symb_value_byte[temp_key] == 0)
                                 sram_consumption ++;
-                        
+
                         if(scale_value_byte[temp_key] == 0)
                         {
                             symb_value_byte[temp_key] += (long)ByteCnt_temp;
@@ -357,14 +351,14 @@ int main(int argc,char*argv[])
             {
                 ByteCnt_temp = found_item->hash_to_list->cached_value + ByteCnt_temp;
                 PktCnt_temp = found_item->hash_to_list->cached_pkt + PktCnt_temp;
-                Byte_upscale_temp = 1;//update recording: 1,2,4 stands for: unupdated,update,new update
-                Pkt_upscale_temp = 1;
-                if(ByteCnt_temp > LRU2_BYTE_CNT_WIDTH)
+                if(ByteCnt_temp > LRU2_BYTE_CNT_WIDTH || PktCnt_temp > LRU2_PKT_CNT_WIDTH)
                 {
-                    Byte_upscale_temp = 2;
-                    if(symb_value_byte[Flow_ID_temp] == 0)
-                        Byte_upscale_temp = 4;
+                    if(symb_value_byte[Flow_ID_temp] + symb_value_pkt[Flow_ID_temp])
+                    {
+                        sram_consumption ++;
+                    }
                     //overflow
+                    //upscale SRAM byte counter
                     if(scale_value_byte[Flow_ID_temp] == 0)
                     {
                         symb_value_byte[Flow_ID_temp] += (long)ByteCnt_temp;
@@ -399,14 +393,7 @@ int main(int argc,char*argv[])
                     {
                         symb_value_byte[Flow_ID_temp] += OEFUpdate(symb_value_byte[Flow_ID_temp], (long)ByteCnt_temp, scale_byte_11);
                     }
-                    ByteCnt_temp = 0;
-                    byte_access_time += CALC_TIME + OFF_CHIP_TIME*2;
-                }
-                if(PktCnt_temp > LRU2_PKT_CNT_WIDTH)
-                {
-                    Pkt_upscale_temp = 2;
-                    if(symb_value_pkt[Flow_ID_temp] == 0)
-                        Pkt_upscale_temp = 4;
+
                     if(scale_value_pkt[Flow_ID_temp] == 0)
                     {
                         symb_value_pkt[Flow_ID_temp] += (long)PktCnt_temp;
@@ -417,6 +404,8 @@ int main(int argc,char*argv[])
                             upscale_cnt_pkt++;
                         }
                     }
+
+                    //upscale packet counter
                     else if(scale_value_pkt[Flow_ID_temp] == 1)//scale_pkt_11
                     {
                         symb_value_pkt[Flow_ID_temp] += OEFUpdate(symb_value_pkt[Flow_ID_temp], (long)PktCnt_temp, scale_pkt_11);
@@ -441,18 +430,11 @@ int main(int argc,char*argv[])
                     {
                         symb_value_pkt[Flow_ID_temp] += OEFUpdate(symb_value_pkt[Flow_ID_temp], (long)PktCnt_temp, scale_pkt_8);
                     }
+                    ByteCnt_temp = 0;
                     PktCnt_temp = 0;
-                    pkt_access_time += CALC_TIME + OFF_CHIP_TIME*2;
-                }
-                if(Pkt_upscale_temp + Byte_upscale_temp > 2)
-                {
                     overflow_time ++;
-                    comb_access_time += CALC_TIME + OFF_CHIP_TIME*2;
                     sram_trans += 2;
-                }
-                if(Pkt_upscale_temp + Byte_upscale_temp > 4)
-                {
-                    sram_consumption ++;
+                    access_time += CALC_TIME + OFF_CHIP_TIME*2;
                 }
 
                 delete_node_pointed(list_head_2_p, found_item->hash_to_list);
@@ -476,10 +458,6 @@ int main(int argc,char*argv[])
 
         }
     }
-
-    pkt_access_time += access_time;
-    byte_access_time += access_time;
-    access_time += comb_access_time;
 
     //write LRU_1 to off-chip DRAM
     cache_node = list_head_1.head;
@@ -582,8 +560,8 @@ int main(int argc,char*argv[])
     }
 
 
-    FILE * fp_1 = fopen("upscaled_cached_DISCO_byte.txt","w");
-    FILE * fp_2 = fopen("uncached_DISCO_byte.txt","w");
+    FILE * fp_1 = fopen("data\\output\\upscaled_cached_DISCO_byte.txt","w");
+    FILE * fp_2 = fopen("data\\output\\uncached_DISCO_byte.txt","w");
     double esti_value_byte = 0;
     double esti_error_byte = 0;
 
@@ -652,8 +630,8 @@ int main(int argc,char*argv[])
     rel_error_un_byte     = rel_error_un_byte/(double)(total_flow_cnt+1);
 
 
-    FILE * fp_3 = fopen("upscaled_cached_DISCO_pkt.txt","w");
-    FILE * fp_4 = fopen("uncached_DISCO_pkt.txt","w");
+    FILE * fp_3 = fopen("data\\output\\upscaled_cached_DISCO_pkt.txt","w");
+    FILE * fp_4 = fopen("data\\output\\uncached_DISCO_pkt.txt","w");
     double esti_value_pkt = 0;
     double esti_error_pkt = 0;
 
@@ -732,24 +710,6 @@ int main(int argc,char*argv[])
     double gbps_un = 0;
     gbps_un = pow(10.0, 9.0)/1024.0/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME)*(double)aver_pkt_size*8.0;
 
-    double pkt_mpps = 0;
-    pkt_mpps = (double)total_pkt_cnt*pow(10.0, 9.0)/1024.0/1024.0/pkt_access_time;
-    double pkt_gbps = 0;
-    pkt_gbps = total_byte_cnt*pow(10.0, 9.0)*8.0/1024.0/1024.0/1024.0/pkt_access_time;
-    double pkt_mpps_un = 0;
-    pkt_mpps_un = pow(10.0, 9.0)/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME);
-    double pkt_gbps_un = 0;
-    pkt_gbps_un = pow(10.0, 9.0)/1024.0/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME)*(double)aver_pkt_size*8.0;
-
-    double byte_mpps = 0;
-    byte_mpps = (double)total_pkt_cnt*pow(10.0, 9.0)/1024.0/1024.0/byte_access_time;
-    double byte_gbps = 0;
-    byte_gbps = total_byte_cnt*pow(10.0, 9.0)*8.0/1024.0/1024.0/1024.0/byte_access_time;
-    double byte_mpps_un = 0;
-    byte_mpps_un = pow(10.0, 9.0)/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME);
-    double byte_gbps_un = 0;
-    byte_gbps_un = pow(10.0, 9.0)/1024.0/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME)*(double)aver_pkt_size*8.0;
-
     printf("LRU_1 module's byte counter's max value = %10d.\n", LRU1_byte_counter_max);
     printf("LRU_1 module's packet counter's max value = %10d.\n", LRU1_pkt_counter_max);
     printf("total byte count is = %10f.\n", total_byte_cnt);
@@ -784,16 +744,6 @@ int main(int argc,char*argv[])
     printf("cached throughput Gbps = %lf.\n", gbps);
     printf("uncached throughput Mpps = %lf.\n", mpps_un);
     printf("uncached throughput Gbps = %lf.\n", gbps_un);
-
-    printf("cached throughput pkt_mpps = %lf.\n", pkt_mpps);
-    printf("cached throughput pkt_gbps = %lf.\n", pkt_gbps);
-    printf("uncached throughput pkt_mpps = %lf.\n", pkt_mpps_un);
-    printf("uncached throughput pkt_gbps = %lf.\n", pkt_gbps_un);
-
-    printf("cached throughput byte_mpps = %lf.\n", byte_mpps);
-    printf("cached throughput byte_gbps = %lf.\n", byte_gbps);
-    printf("uncached throughput byte_mpps = %lf.\n", byte_mpps_un);
-    printf("uncached throughput byte_gbps = %lf.\n", byte_gbps_un);
 
     fclose(fp);
     fclose(fp_1);
