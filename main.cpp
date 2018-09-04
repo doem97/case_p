@@ -38,7 +38,7 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_TOTAL = 1024 * 128;
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
-		fp = fopen("d:\\report_2013.txt","r");
+		fp = fopen("data\\trace\\report_2013.txt","r");
 	}
 
 	printf("%dpkt   %dbyte   %dcachesize", THRES_PKT, THRES_BYTE, CACHE_SIZE_TOTAL);
@@ -582,8 +582,8 @@ int main(int argc,char*argv[])
     }
 
 
-    FILE * fp_1 = fopen("upscaled_cached_DISCO_byte.txt","w");
-    FILE * fp_2 = fopen("uncached_DISCO_byte.txt","w");
+    FILE * fp_1 = fopen("data\\output\\upscaled_cached_DISCO_byte.txt","w");
+    FILE * fp_2 = fopen("data\\output\\uncached_DISCO_byte.txt","w");
     double esti_value_byte = 0;
     double esti_error_byte = 0;
 
@@ -652,8 +652,8 @@ int main(int argc,char*argv[])
     rel_error_un_byte     = rel_error_un_byte/(double)(total_flow_cnt+1);
 
 
-    FILE * fp_3 = fopen("upscaled_cached_DISCO_pkt.txt","w");
-    FILE * fp_4 = fopen("uncached_DISCO_pkt.txt","w");
+    FILE * fp_3 = fopen("data\\output\\upscaled_cached_DISCO_pkt.txt","w");
+    FILE * fp_4 = fopen("data\\output\\uncached_DISCO_pkt.txt","w");
     double esti_value_pkt = 0;
     double esti_error_pkt = 0;
 
