@@ -13,6 +13,7 @@
 int main(int argc,char*argv[])
 {
 	bool use_command = false;
+    bool use_pkt_th = false; //true to use packet threshold, and false to use byte threshold.
     int THRES_PKT;
     int THRES_BYTE;
     double size_1_2_rate;
@@ -208,9 +209,7 @@ int main(int argc,char*argv[])
         {
             if(found_item->hash_to_list->list_head_p == list_head_1_p)//LRU_1 hit
             {
-                if(found_item -> hash_to_list -> cached_value + ByteCnt_temp >= THRES_BYTE)//from LRU_1 to LRU_2
-                    //found_item -> hash_to_list -> cached_value + ByteCnt_temp >= THRES_BYTE
-                    //found_item -> hash_to_list -> cached_pkt + PktCnt_temp >= THRES_PKT
+                if((found_item -> hash_to_list -> cached_value + ByteCnt_temp >= THRES_BYTE && !use_pkt_th) || (found_item -> hash_to_list -> cached_pkt + PktCnt_temp >= THRES_PKT && use_pkt_th))//from LRU_1 to LRU_2
                 {
                     //delete item from LRU_1
                     ByteCnt_temp = found_item->hash_to_list->cached_value + ByteCnt_temp;
