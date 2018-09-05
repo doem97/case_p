@@ -1,7 +1,7 @@
 #include "allmyfile.h"
 
 #define LRU2_BYTE_CNT_WIDTH 65535  //16, 2^16-1
-#define LRU2_PKT_CNT_WIDTH 65535
+//#define LRU2_PKT_CNT_WIDTH 65535 //6:63,7:127,8:255,9:511,10:1023,11:2047,12:4095,13:8191,14:16383,15:32767,16:65535
 #define SUPP_FLOW   2097152*10//2M, 2*1024*1024
 
 //define the accesss time of the chip
@@ -12,13 +12,14 @@
 
 int main(int argc,char*argv[])
 {
-	bool use_command = false;
+	bool use_command = true;
     int THRES_PKT;
     int THRES_BYTE;
     double size_1_2_rate;
     int CACHE_SIZE_TOTAL;
     int CACHE_SIZE_1;
     int CACHE_SIZE_2;
+    int LRU2_PKT_CNT_WIDTH;
     FILE * fp;
 	if(use_command == true)
 	{
@@ -28,7 +29,8 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_TOTAL = 1024 * atof(argv[3]);
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
-		fp = fopen(argv[4],"r");
+        LRU2_PKT_CNT_WIDTH = atoi(argv[4]);
+		fp = fopen(argv[5],"r");
 	}
 	else
 	{
