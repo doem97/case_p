@@ -359,7 +359,7 @@ int main(int argc,char*argv[])
                 PktCnt_temp = found_item->hash_to_list->cached_pkt + PktCnt_temp;
                 if(ByteCnt_temp > LRU2_BYTE_CNT_WIDTH || PktCnt_temp > LRU2_PKT_CNT_WIDTH)
                 {
-                    if(symb_value_byte[Flow_ID_temp] + symb_value_pkt[Flow_ID_temp])
+                    if(!(symb_value_byte[Flow_ID_temp] + symb_value_pkt[Flow_ID_temp]))
                     {
                         sram_consumption ++;
                     }
