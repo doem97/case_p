@@ -12,7 +12,7 @@
 
 int main(int argc,char*argv[])
 {
-	bool use_command = true;
+	bool use_command = false;
     int THRES_PKT;
     int THRES_BYTE;
     double size_1_2_rate;
@@ -20,7 +20,8 @@ int main(int argc,char*argv[])
     int CACHE_SIZE_1;
     int CACHE_SIZE_2;
     int LRU2_PKT_CNT_WIDTH;
-    string base_folder = "D:\\workspace\\CASE_P\\";
+    std::string base_folder = "D:\\workspace\\CASE_P\\";
+    std::string temp_string;
     FILE * fp;
 	if(use_command == true)
 	{
@@ -31,7 +32,8 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
         LRU2_PKT_CNT_WIDTH = atoi(argv[4]);
-		fp = fopen(base_folder + "data\\trace\\" + argv[5],"r");
+        temp_string = base_folder + "data\\trace\\" + argv[5];
+		fp = fopen(temp_string.c_str(), "r");
 	}
 	else
 	{
@@ -42,7 +44,8 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
         LRU2_PKT_CNT_WIDTH = 65535;
-		fp = fopen(base_folder + "data\\trace\\" + "report_2013.txt","r");
+        temp_string = base_folder + "data\\trace\\" + "report_2013.txt";
+		fp = fopen(temp_string.c_str(), "r");
 	}
 
 	printf("%dpkt   %dbyte   %dcachesize", THRES_PKT, THRES_BYTE, CACHE_SIZE_TOTAL);
@@ -564,8 +567,10 @@ int main(int argc,char*argv[])
     }
 
 
-    FILE * fp_1 = fopen(base_folder + "data\\output\\upscaled_cached_DISCO_byte.txt","w");
-    FILE * fp_2 = fopen(base_folder + "data\\output\\uncached_DISCO_byte.txt","w");
+    temp_string = base_folder + "data\\output\\upscaled_cached_DISCO_byte.txt";
+    FILE * fp_1 = fopen(temp_string.c_str(),"w");
+    temp_string = base_folder + "data\\output\\uncached_DISCO_byte.txt";
+    FILE * fp_2 = fopen(temp_string.c_str(),"w");
     double esti_value_byte = 0;
     double esti_error_byte = 0;
 
@@ -633,9 +638,11 @@ int main(int argc,char*argv[])
     rel_error_cached_byte = rel_error_cached_byte/(double)(total_flow_cnt+1);
     rel_error_un_byte     = rel_error_un_byte/(double)(total_flow_cnt+1);
 
+    temp_string = base_folder + "data\\output\\upscaled_cached_DISCO_pkt.txt";
+    FILE * fp_3 = fopen(temp_string.c_str(),"w");
+    temp_string = base_folder + "data\\output\\uncached_DISCO_pkt.txt";
+    FILE * fp_4 = fopen(temp_string.c_str(),"w");
 
-    FILE * fp_3 = fopen(base_folder + "data\\output\\upscaled_cached_DISCO_pkt.txt","w");
-    FILE * fp_4 = fopen(base_folder + "data\\output\\uncached_DISCO_pkt.txt","w");
     double esti_value_pkt = 0;
     double esti_error_pkt = 0;
 

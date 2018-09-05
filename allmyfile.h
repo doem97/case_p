@@ -2,6 +2,7 @@
 #define ALLMYFILE_H_INCLUDED
 
 //system headers
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
 #include "uthash.h"
