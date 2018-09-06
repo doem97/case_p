@@ -12,7 +12,7 @@
 
 int main(int argc,char*argv[])
 {
-	bool use_command = false;
+	bool use_command = true;
     bool use_pkt_th = false; //true to use packet threshold, and false to use byte threshold.
     int THRES_PKT;
     int THRES_BYTE;
@@ -28,12 +28,12 @@ int main(int argc,char*argv[])
 	{
 	    THRES_PKT = atoi(argv[1]);
 	    THRES_BYTE = atoi(argv[2]);
-	    size_1_2_rate = 0.125;
-	    CACHE_SIZE_TOTAL = 1024 * atof(argv[3]);
+	    size_1_2_rate = atof(argv[3]);
+	    CACHE_SIZE_TOTAL = 1024 * atof(argv[4]);
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
-        LRU2_PKT_CNT_WIDTH = atoi(argv[4]);
-        temp_string = base_folder + "data\\trace\\" + argv[5];
+        LRU2_PKT_CNT_WIDTH = atoi(argv[5]);
+        temp_string = base_folder + "data\\trace\\" + argv[6];
 		fp = fopen(temp_string.c_str(), "r");
 	}
 	else
