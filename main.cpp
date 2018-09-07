@@ -1,6 +1,6 @@
 #include "allmyfile.h"
 
-#define LRU2_BYTE_CNT_WIDTH 65535  //16, 2^16-1
+//#define LRU2_BYTE_CNT_WIDTH 65535  //16, 2^16-1
 //#define LRU2_PKT_CNT_WIDTH 65535 //6:63,7:127,8:255,9:511,10:1023,11:2047,12:4095,13:8191,14:16383,15:32767,16:65535
 #define SUPP_FLOW   2097152*10//2M, 2*1024*1024
 
@@ -21,6 +21,7 @@ int main(int argc,char*argv[])
     int CACHE_SIZE_1;
     int CACHE_SIZE_2;
     int LRU2_PKT_CNT_WIDTH;
+    int LRU2_BYTE_CNT_WIDTH;
     std::string base_folder = "D:\\workspace\\CASE_P\\";
     std::string temp_string;
     FILE * fp;
@@ -33,7 +34,8 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
         LRU2_PKT_CNT_WIDTH = atoi(argv[5]);
-        temp_string = base_folder + "data\\trace\\" + argv[6];
+        LRU2_BYTE_CNT_WIDTH = atoi(argv[6]);
+        temp_string = base_folder + "data\\trace\\" + argv[7];
 		fp = fopen(temp_string.c_str(), "r");
 	}
 	else
@@ -44,7 +46,8 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_TOTAL = 1024 * 128;
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
-        LRU2_PKT_CNT_WIDTH = 511;
+        LRU2_PKT_CNT_WIDTH = 1023;
+        LRU2_BYTE_CNT_WIDTH = 65535;
         temp_string = base_folder + "data\\trace\\" + "report_2013.txt";
 		fp = fopen(temp_string.c_str(), "r");
 	}
