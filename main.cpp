@@ -52,7 +52,7 @@ int main(int argc,char*argv[])
 		fp = fopen(temp_string.c_str(), "r");
 	}
 
-	printf("%dpkt   %dbyte   %dcachesize", THRES_PKT, THRES_BYTE, CACHE_SIZE_TOTAL);
+	printf("%dpkt_th,%dbyte_th,%fcut_rate,%dcachesize,%dLRU2_pkt_width,%dLRU2_byte_width\n", THRES_PKT, THRES_BYTE, size_1_2_rate, CACHE_SIZE_TOTAL, LRU2_PKT_CNT_WIDTH, LRU2_BYTE_CNT_WIDTH);
 
     double scale_byte = pow(0.5, 11.730474);
     //scale parameters, width = 16;
