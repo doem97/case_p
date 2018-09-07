@@ -739,8 +739,8 @@ int main(int argc,char*argv[])
 
     printf("number of flows = %d.\n", total_flow_cnt+1);
     printf("number of packets = %d.\n", total_pkt_cnt);
-    printf("pkt counter overflow times = %d.\n", overflow_time_pkt);
-    printf("byte counter overflow times = %d.\n", overflow_time_byte);
+    printf("pkt counter overflow times = %10d.\n", overflow_time_pkt);
+    printf("byte counter overflow times = %10d.\n", overflow_time_byte);
     printf("cache hit times = %d, cache miss time = %d.\n", cache_hit, cache_miss);
     cache_hit_rate = (float)cache_hit/(cache_hit + cache_miss);
     printf("cache hit rate = %f.\n", cache_hit_rate);
