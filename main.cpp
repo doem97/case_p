@@ -44,7 +44,7 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_TOTAL = 1024 * 128;
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
-        LRU2_PKT_CNT_WIDTH = 65535;
+        LRU2_PKT_CNT_WIDTH = 511;
         temp_string = base_folder + "data\\trace\\" + "report_2013.txt";
 		fp = fopen(temp_string.c_str(), "r");
 	}
@@ -122,7 +122,8 @@ int main(int argc,char*argv[])
     int cache_hit = 0;
     int cache_miss = 0;
     float cache_hit_rate = 0;
-    int overflow_time = 0;
+    int overflow_time_pkt = 0;
+    int overflow_time_byte = 0;
 
     int total_flow_cnt = 0;  //trace all flow count;
     double total_byte_cnt = 0;
@@ -359,6 +360,10 @@ int main(int argc,char*argv[])
                 PktCnt_temp = found_item->hash_to_list->cached_pkt + PktCnt_temp;
                 if(ByteCnt_temp > LRU2_BYTE_CNT_WIDTH || PktCnt_temp > LRU2_PKT_CNT_WIDTH)
                 {
+                    if(ByteCnt_temp > LRU2_BYTE_CNT_WIDTH)
+                        overflow_time_byte ++;
+                    if(PktCnt_temp > LRU2_PKT_CNT_WIDTH)
+                        overflow_time_pkt ++;
                     if(!(symb_value_byte[Flow_ID_temp] + symb_value_pkt[Flow_ID_temp]))
                     {
                         sram_consumption ++;
@@ -438,7 +443,6 @@ int main(int argc,char*argv[])
                     }
                     ByteCnt_temp = 0;
                     PktCnt_temp = 0;
-                    overflow_time ++;
                     sram_trans += 2;
                     access_time += CALC_TIME + OFF_CHIP_TIME*2;
                 }
@@ -732,7 +736,8 @@ int main(int argc,char*argv[])
 
     printf("number of flows = %d.\n", total_flow_cnt+1);
     printf("number of packets = %d.\n", total_pkt_cnt);
-    printf("overflow times = %d.\n", overflow_time);
+    printf("pkt counter overflow times = %d.\n", overflow_time_pkt);
+    printf("byte counter overflow times = %d.\n", overflow_time_byte);
     printf("cache hit times = %d, cache miss time = %d.\n", cache_hit, cache_miss);
     cache_hit_rate = (float)cache_hit/(cache_hit + cache_miss);
     printf("cache hit rate = %f.\n", cache_hit_rate);
