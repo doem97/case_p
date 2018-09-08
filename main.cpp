@@ -95,20 +95,20 @@ int main(int argc,char*argv[])
 
     dl_list_node * cache_node;
 
-    //¶¨Òå±íÍ·, LRU_1;
+    // initialize LRU_1 double linked list;
     dl_list_head   list_head_1;
     dl_list_head * list_head_1_p;
     list_head_1_p = &list_head_1;
-    //³õÊ¼»¯±íÍ·
+    
     list_head_1.head = NULL;
     list_head_1.tail = NULL;
     list_head_1.list_length = 0;
 
-    //¶¨Òå±íÍ·£¬LRU_2;
+    // initialize the LRU_2;
     dl_list_head   list_head_2;
     dl_list_head * list_head_2_p;
     list_head_2_p = &list_head_2;
-    //³õÊ¼»¯±íÍ·
+
     list_head_2.head = NULL;
     list_head_2.tail = NULL;
     list_head_2.list_length = 0;
