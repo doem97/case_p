@@ -5,7 +5,7 @@
 #define SUPP_FLOW   2097152*10//2M, 2*1024*1024
 
 // define the accesss time of the chip
-#define OFF_CHIP_TIME 2.37 //IMPORTANT: Time here counts 
+#define OFF_CHIP_TIME 2.37 //IMPORTANT: Time here counts
 // SigmaQuad SRAM IVe
 // cascade two SRAM 36-bit width: 2.37ns(633MHz), 1.8ns(833MHz), 1.125ns(1333MHz)
 #define ON_CHIP_TIME  1.58//CACHE 2ns
@@ -14,7 +14,7 @@
 
 int main(int argc,char*argv[])
 {
-	bool use_command = true;
+	bool use_command = false;
     bool use_pkt_th = false; //true to use packet threshold, and false to use byte threshold.
     int THRES_PKT;
     int THRES_BYTE;
@@ -49,12 +49,12 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
         LRU2_PKT_CNT_WIDTH = 1023;
-        LRU2_BYTE_CNT_WIDTH = 65535;
+        LRU2_BYTE_CNT_WIDTH = 524288;
         temp_string = base_folder + "data\\trace\\" + "report_2013.txt";
 		fp = fopen(temp_string.c_str(), "r");
 	}
 
-	printf("%dpkt_th,%dbyte_th,%fcut_rate,%dcachesize,%dLRU2_pkt_width,%dLRU2_byte_width\n", THRES_PKT, THRES_BYTE, size_1_2_rate, CACHE_SIZE_TOTAL, LRU2_PKT_CNT_WIDTH, LRU2_BYTE_CNT_WIDTH);
+	printf("%d pkt_th, %d byte_th, %f cut_rate, %d cachesize, %d LRU2_pkt_width, %d LRU2_byte_width\n", THRES_PKT, THRES_BYTE, size_1_2_rate, CACHE_SIZE_TOTAL, LRU2_PKT_CNT_WIDTH, LRU2_BYTE_CNT_WIDTH);
 
     double scale_byte = pow(0.5, 11.730474);
     //scale parameters, width = 16;
@@ -101,7 +101,7 @@ int main(int argc,char*argv[])
     dl_list_head   list_head_1;
     dl_list_head * list_head_1_p;
     list_head_1_p = &list_head_1;
-    
+
     list_head_1.head = NULL;
     list_head_1.tail = NULL;
     list_head_1.list_length = 0;
