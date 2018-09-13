@@ -4,10 +4,12 @@
 //#define LRU2_PKT_CNT_WIDTH 65535 //6:63,7:127,8:255,9:511,10:1023,11:2047,12:4095,13:8191,14:16383,15:32767,16:65535
 #define SUPP_FLOW   2097152*10//2M, 2*1024*1024
 
-//define the accesss time of the chip
-#define OFF_CHIP_TIME 10//QDR IV 10ns
-#define ON_CHIP_TIME  2//CACHE 2ns
-#define CALC_TIME     20//20ns
+// define the accesss time of the chip
+#define OFF_CHIP_TIME 2.37 //IMPORTANT: Time here counts 
+// SigmaQuad SRAM IVe
+// cascade two SRAM 36-bit width: 2.37ns(633MHz), 1.8ns(833MHz), 1.125ns(1333MHz)
+#define ON_CHIP_TIME  1.58//CACHE 2ns
+#define CALC_TIME     5// parallel 4 calculation modules
 #define BURST_DRAM_TIME 5//RLDRAM II 20ns, burst length = 4;
 
 int main(int argc,char*argv[])
@@ -320,7 +322,7 @@ int main(int argc,char*argv[])
 
                         /*throughput*/
                         //only one write and two read of on-chip cache and update and one read and one write to off-chip SRAM;
-                        access_time += ON_CHIP_TIME*3 + OFF_CHIP_TIME*2 + CALC_TIME;
+                        access_time += ON_CHIP_TIME*3 + OFF_CHIP_TIME + CALC_TIME;
                         sram_trans += 2;
 
                     }
@@ -447,7 +449,7 @@ int main(int argc,char*argv[])
                     ByteCnt_temp = 0;
                     PktCnt_temp = 0;
                     sram_trans += 2;
-                    access_time += CALC_TIME + OFF_CHIP_TIME*2;
+                    access_time += CALC_TIME + OFF_CHIP_TIME;
                 }
 
                 delete_node_pointed(list_head_2_p, found_item->hash_to_list);
