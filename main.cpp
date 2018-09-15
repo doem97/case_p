@@ -5,16 +5,16 @@
 #define SUPP_FLOW   2097152*10//2M, 2*1024*1024
 
 // define the accesss time of the chip
-#define OFF_CHIP_TIME 2.37 //IMPORTANT: Time here counts
+//#define OFF_CHIP_TIME 2.37 //IMPORTANT: Time here counts
 // SigmaQuad SRAM IVe
 // cascade two SRAM 36-bit width: 2.37ns(633MHz), 1.8ns(833MHz), 1.125ns(1333MHz)
-#define ON_CHIP_TIME  1.58//CACHE 2ns
-#define CALC_TIME     5// parallel 4 calculation modules
+//#define ON_CHIP_TIME  2//CACHE 2ns or 633MHz 1.58ns
+//#define CALC_TIME     5// parallel 4 calculation modules
 #define BURST_DRAM_TIME 5//RLDRAM II 20ns, burst length = 4;
 
 int main(int argc,char*argv[])
 {
-	bool use_command = false;
+	bool use_command = true;
     bool use_pkt_th = false; //true to use packet threshold, and false to use byte threshold.
     int THRES_PKT;
     int THRES_BYTE;
@@ -24,6 +24,9 @@ int main(int argc,char*argv[])
     int CACHE_SIZE_2;
     int LRU2_PKT_CNT_WIDTH;
     int LRU2_BYTE_CNT_WIDTH;
+    double OFF_CHIP_TIME;
+    double ON_CHIP_TIME;
+    double CALC_TIME;
     std::string base_folder = "D:\\workspace\\CASE_P\\";
     std::string temp_string;
     FILE * fp;
@@ -37,7 +40,10 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
         LRU2_PKT_CNT_WIDTH = atoi(argv[5]);
         LRU2_BYTE_CNT_WIDTH = atoi(argv[6]);
-        temp_string = base_folder + "data\\trace\\" + argv[7];
+        ON_CHIP_TIME = atof(argv[7]);
+        OFF_CHIP_TIME = atof(argv[8]);
+        CALC_TIME = atof(argv[9]);
+        temp_string = base_folder + "data\\trace\\" + argv[10];
 		fp = fopen(temp_string.c_str(), "r");
 	}
 	else
@@ -50,11 +56,14 @@ int main(int argc,char*argv[])
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
         LRU2_PKT_CNT_WIDTH = 1023;
         LRU2_BYTE_CNT_WIDTH = 524288;
+        ON_CHIP_TIME = 1.58;
+        OFF_CHIP_TIME = 2.37;
+        CALC_TIME = 5;
         temp_string = base_folder + "data\\trace\\" + "report_2013.txt";
 		fp = fopen(temp_string.c_str(), "r");
 	}
 
-	printf("%d pkt_th, %d byte_th, %f cut_rate, %d cachesize, %d LRU2_pkt_width, %d LRU2_byte_width\n", THRES_PKT, THRES_BYTE, size_1_2_rate, CACHE_SIZE_TOTAL, LRU2_PKT_CNT_WIDTH, LRU2_BYTE_CNT_WIDTH);
+	printf("%d pkt_th, %d byte_th, %f cut_rate, %d cachesize, %d LRU2_pkt_width, %d LRU2_byte_width, %f on_chip_time, %f off_chip_time, %f calc_time\n", THRES_PKT, THRES_BYTE, size_1_2_rate, CACHE_SIZE_TOTAL, LRU2_PKT_CNT_WIDTH, LRU2_BYTE_CNT_WIDTH, ON_CHIP_TIME, OFF_CHIP_TIME, CALC_TIME);
 
     double scale_byte = pow(0.5, 11.730474);
     //scale parameters, width = 16;
@@ -321,7 +330,7 @@ int main(int argc,char*argv[])
                         }
 
                         /*throughput*/
-                        //only one write and two read of on-chip cache and update and one read and one write to off-chip SRAM;
+                        //only one write and two read of on-chip cache -> then update -> one read and one write to off-chip SRAM;
                         access_time += ON_CHIP_TIME*3 + OFF_CHIP_TIME + CALC_TIME;
                         sram_trans += 2;
 
