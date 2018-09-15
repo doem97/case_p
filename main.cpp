@@ -19,8 +19,8 @@ int main(int argc,char*argv[])
     int THRES_PKT;
     int THRES_BYTE;
     double size_1_2_rate;
-    int CACHE_SIZE_TOTAL;
-    int CACHE_SIZE_1;
+    //int CACHE_SIZE_TOTAL;
+    int CACHE_SIZE_1; // 16,32,48,64,80,96,112
     int CACHE_SIZE_2;
     int LRU2_PKT_CNT_WIDTH;
     int LRU2_BYTE_CNT_WIDTH;
@@ -35,15 +35,15 @@ int main(int argc,char*argv[])
 	    THRES_PKT = atoi(argv[1]);
 	    THRES_BYTE = atoi(argv[2]);
 	    size_1_2_rate = atof(argv[3]);
-	    CACHE_SIZE_TOTAL = 1024 * atof(argv[4]);
-	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
-	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
-        LRU2_PKT_CNT_WIDTH = atoi(argv[5]);
-        LRU2_BYTE_CNT_WIDTH = atoi(argv[6]);
-        ON_CHIP_TIME = atof(argv[7]);
-        OFF_CHIP_TIME = atof(argv[8]);
-        CALC_TIME = atof(argv[9]);
-        temp_string = base_folder + "data\\trace\\" + argv[10];
+	    //CACHE_SIZE_TOTAL = 1024 * atof(argv[4]);
+	    CACHE_SIZE_1 = atoi(argv[4]) * 1024;
+	    CACHE_SIZE_2 = atoi(argv[5]) * 1024;
+        LRU2_PKT_CNT_WIDTH = atoi(argv[6]);
+        LRU2_BYTE_CNT_WIDTH = atoi(argv[7]);
+        ON_CHIP_TIME = atof(argv[8]);
+        OFF_CHIP_TIME = atof(argv[9]);
+        CALC_TIME = atof(argv[10]);
+        temp_string = base_folder + "data\\trace\\" + argv[11];
 		fp = fopen(temp_string.c_str(), "r");
 	}
 	else
@@ -51,9 +51,9 @@ int main(int argc,char*argv[])
 	    THRES_PKT = 9;
 	    THRES_BYTE = 8192;
 	    size_1_2_rate = 0.125;
-	    CACHE_SIZE_TOTAL = 1024 * 128;
-	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
-	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
+	    //CACHE_SIZE_TOTAL = 1024 * 128;
+	    CACHE_SIZE_1 = 16*1024;
+	    CACHE_SIZE_2 = 16*1024;
         LRU2_PKT_CNT_WIDTH = 1023;
         LRU2_BYTE_CNT_WIDTH = 524288;
         ON_CHIP_TIME = 1.58;
@@ -63,7 +63,7 @@ int main(int argc,char*argv[])
 		fp = fopen(temp_string.c_str(), "r");
 	}
 
-	printf("%d pkt_th, %d byte_th, %f cut_rate, %d cachesize, %d LRU2_pkt_width, %d LRU2_byte_width, %f on_chip_time, %f off_chip_time, %f calc_time\n", THRES_PKT, THRES_BYTE, size_1_2_rate, CACHE_SIZE_TOTAL, LRU2_PKT_CNT_WIDTH, LRU2_BYTE_CNT_WIDTH, ON_CHIP_TIME, OFF_CHIP_TIME, CALC_TIME);
+	printf("%d pkt_th, %d byte_th, %f cut_rate, %d LRU_1, %d LRU_2, %d LRU2_pkt_width, %d LRU2_byte_width, %f on_chip_time, %f off_chip_time, %f calc_time\n", THRES_PKT, THRES_BYTE, size_1_2_rate, CACHE_SIZE_1, CACHE_SIZE_2, LRU2_PKT_CNT_WIDTH, LRU2_BYTE_CNT_WIDTH, ON_CHIP_TIME, OFF_CHIP_TIME, CALC_TIME);
 
     double scale_byte = pow(0.5, 11.730474);
     //scale parameters, width = 16;
