@@ -60,7 +60,7 @@ int main(int argc,char*argv[])
         ON_CHIP_TIME = 5;
         OFF_CHIP_TIME = 2.37;
         CALC_TIME = 20;
-        temp_string = base_folder + "data\\trace\\" + "report_2018.txt";
+        temp_string = base_folder + "data\\trace\\" + "report_2013.txt";
 		fp = fopen(temp_string.c_str(), "r");
 	}
 
@@ -181,7 +181,7 @@ int main(int argc,char*argv[])
 
         packet * found_item;
         found_item = find_user(Flow_ID_temp);
-        access_time += on_chip_time; // time of searching two LRU
+        //access_time += ON_CHIP_TIME; // time of searching two LRU
 
         if(found_item == NULL)//cache miss
         {
