@@ -181,7 +181,7 @@ int main(int argc,char*argv[])
 
         packet * found_item;
         found_item = find_user(Flow_ID_temp);
-        //access_time += ON_CHIP_TIME; // time of searching two LRU
+        access_time += ON_CHIP_TIME; // time of searching two LRU
 
         if(found_item == NULL)//cache miss
         {
