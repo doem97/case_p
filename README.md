@@ -10,3 +10,6 @@ This project simulates CASE+ structure in C++. It reads real network trace from 
 - Select whether use packet number or byte value as the threshold that determines when a flow will be sent to LRU_2 from LRU_1
 - On-off chip interaction frequency
 - Relative error in saving flow information
+
+##Branch lru2real:
+We found that the searching time of LRU didn't be counted. But it will cause huge rework of previous results. So I made that branch in case it is used in future.
