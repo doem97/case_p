@@ -52,11 +52,6 @@ int main(int argc,char*argv[])
 	    THRES_BYTE = 8192;
 	    size_1_2_rate = 0.125;
 	    CACHE_SIZE_TOTAL = 1024 * 128;
-<<<<<<< HEAD
-	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
-	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
-		fp = fopen("data\\trace\\report_2013.txt","r");
-=======
         CACHE_SIZE_1 = 128;
 	    CACHE_SIZE_2 = 1024;
         LRU2_PKT_CNT_WIDTH = 1023;
@@ -67,7 +62,6 @@ int main(int argc,char*argv[])
         CALC_TIME = 20;
         temp_string = base_folder + "data\\trace\\" + "report_2013.txt";
 		fp = fopen(temp_string.c_str(), "r");
->>>>>>> lru2logic
 	}
 
 	printf("%d pkt_th, %d byte_th, %f cut_rate, %d LRU_1, %d LRU_2, %d LRU2_pkt_width, %d LRU2_byte_width, %f on_chip_time, %f off_chip_time, %f calc_time\n", THRES_PKT, THRES_BYTE, size_1_2_rate, CACHE_SIZE_1, CACHE_SIZE_2, LRU2_PKT_CNT_WIDTH, LRU2_BYTE_CNT_WIDTH, ON_CHIP_TIME, OFF_CHIP_TIME, CALC_TIME);
@@ -592,15 +586,10 @@ int main(int argc,char*argv[])
     }
 
 
-<<<<<<< HEAD
-    FILE * fp_1 = fopen("data\\output\\upscaled_cached_DISCO_byte.txt","w");
-    FILE * fp_2 = fopen("data\\output\\uncached_DISCO_byte.txt","w");
-=======
     temp_string = base_folder + "data\\output\\upscaled_cached_DISCO_byte.txt";
     FILE * fp_1 = fopen(temp_string.c_str(),"w");
     temp_string = base_folder + "data\\output\\uncached_DISCO_byte.txt";
     FILE * fp_2 = fopen(temp_string.c_str(),"w");
->>>>>>> lru2logic
     double esti_value_byte = 0;
     double esti_error_byte = 0;
 
@@ -673,11 +662,6 @@ int main(int argc,char*argv[])
     temp_string = base_folder + "data\\output\\uncached_DISCO_pkt.txt";
     FILE * fp_4 = fopen(temp_string.c_str(),"w");
 
-<<<<<<< HEAD
-    FILE * fp_3 = fopen("data\\output\\upscaled_cached_DISCO_pkt.txt","w");
-    FILE * fp_4 = fopen("data\\output\\uncached_DISCO_pkt.txt","w");
-=======
->>>>>>> lru2logic
     double esti_value_pkt = 0;
     double esti_error_pkt = 0;
 
