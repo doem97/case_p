@@ -1,34 +1,50 @@
 #include "allmyfile.h"
 
-#define LRU2_BYTE_CNT_WIDTH 65535  //16, 2^16-1
-#define LRU2_PKT_CNT_WIDTH 65535
+//#define LRU2_BYTE_CNT_WIDTH 65535  //16, 2^16-1
+//#define LRU2_PKT_CNT_WIDTH 65535 //6:63,7:127,8:255,9:511,10:1023,11:2047,12:4095,13:8191,14:16383,15:32767,16:65535
 #define SUPP_FLOW   2097152*10//2M, 2*1024*1024
 
-//define the accesss time of the chip
-#define OFF_CHIP_TIME 10//QDR IV 10ns
-#define ON_CHIP_TIME  2//CACHE 2ns
-#define CALC_TIME     20//20ns
+// define the accesss time of the chip
+//#define OFF_CHIP_TIME 2.37 //IMPORTANT: Time here counts
+// SigmaQuad SRAM IVe
+// cascade two SRAM 36-bit width: 2.37ns(633MHz), 1.8ns(833MHz), 1.125ns(1333MHz)
+//#define ON_CHIP_TIME  2//CACHE 2ns or 633MHz 1.58ns
+//#define CALC_TIME     5// parallel 4 calculation modules
 #define BURST_DRAM_TIME 5//RLDRAM II 20ns, burst length = 4;
 
 int main(int argc,char*argv[])
 {
-	bool use_command = true;
+	bool use_command = false;
+    bool use_pkt_th = true; //true to use packet threshold, and false to use byte threshold.
     int THRES_PKT;
     int THRES_BYTE;
     double size_1_2_rate;
     int CACHE_SIZE_TOTAL;
-    int CACHE_SIZE_1;
+    int CACHE_SIZE_1; // 16,32,48,64,80,96,112
     int CACHE_SIZE_2;
+    int LRU2_PKT_CNT_WIDTH;
+    int LRU2_BYTE_CNT_WIDTH;
+    double OFF_CHIP_TIME;
+    double ON_CHIP_TIME;
+    double CALC_TIME;
+    std::string base_folder = "D:\\workspace\\CASE_P\\";
+    std::string temp_string;
     FILE * fp;
 	if(use_command == true)
 	{
 	    THRES_PKT = atoi(argv[1]);
 	    THRES_BYTE = atoi(argv[2]);
-	    size_1_2_rate = 0.125;
-	    CACHE_SIZE_TOTAL = 1024 * atof(argv[3]);
-	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
+	    size_1_2_rate = atof(argv[3]);
+	    CACHE_SIZE_TOTAL = 1024 * atof(argv[4]);
+        CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
-		fp = fopen(argv[4],"r");
+        LRU2_PKT_CNT_WIDTH = atoi(argv[5]);
+        LRU2_BYTE_CNT_WIDTH = atoi(argv[6]);
+        ON_CHIP_TIME = atof(argv[7]);
+        OFF_CHIP_TIME = atof(argv[8]);
+        CALC_TIME = atof(argv[9]);
+        temp_string = base_folder + "data\\trace\\" + argv[10];
+		fp = fopen(temp_string.c_str(), "r");
 	}
 	else
 	{
@@ -36,12 +52,25 @@ int main(int argc,char*argv[])
 	    THRES_BYTE = 8192;
 	    size_1_2_rate = 0.125;
 	    CACHE_SIZE_TOTAL = 1024 * 128;
+<<<<<<< HEAD
 	    CACHE_SIZE_1 = CACHE_SIZE_TOTAL * size_1_2_rate;
 	    CACHE_SIZE_2 = CACHE_SIZE_TOTAL - CACHE_SIZE_1;
 		fp = fopen("data\\trace\\report_2013.txt","r");
+=======
+        CACHE_SIZE_1 = 128;
+	    CACHE_SIZE_2 = 1024;
+        LRU2_PKT_CNT_WIDTH = 1023;
+        LRU2_BYTE_CNT_WIDTH = 524288;
+        //ON_CHIP_TIME = 1.58;
+        ON_CHIP_TIME = 5;
+        OFF_CHIP_TIME = 2.37;
+        CALC_TIME = 20;
+        temp_string = base_folder + "data\\trace\\" + "report_2013.txt";
+		fp = fopen(temp_string.c_str(), "r");
+>>>>>>> lru2logic
 	}
 
-	printf("%dpkt   %dbyte   %dcachesize", THRES_PKT, THRES_BYTE, CACHE_SIZE_TOTAL);
+	printf("%d pkt_th, %d byte_th, %f cut_rate, %d LRU_1, %d LRU_2, %d LRU2_pkt_width, %d LRU2_byte_width, %f on_chip_time, %f off_chip_time, %f calc_time\n", THRES_PKT, THRES_BYTE, size_1_2_rate, CACHE_SIZE_1, CACHE_SIZE_2, LRU2_PKT_CNT_WIDTH, LRU2_BYTE_CNT_WIDTH, ON_CHIP_TIME, OFF_CHIP_TIME, CALC_TIME);
 
     double scale_byte = pow(0.5, 11.730474);
     //scale parameters, width = 16;
@@ -68,8 +97,6 @@ int main(int argc,char*argv[])
     static long pile_value_pkt[SUPP_FLOW];
 
     int i;
-    int Byte_upscale_temp;
-    int Pkt_upscale_temp;
     for(i=0; i<SUPP_FLOW; i++)
     {
         scale_value_byte[i] = 0;
@@ -86,20 +113,20 @@ int main(int argc,char*argv[])
 
     dl_list_node * cache_node;
 
-    //¶¨Òå±íÍ·, LRU_1;
+    // initialize LRU_1 double linked list;
     dl_list_head   list_head_1;
     dl_list_head * list_head_1_p;
     list_head_1_p = &list_head_1;
-    //³õÊ¼»¯±íÍ·
+
     list_head_1.head = NULL;
     list_head_1.tail = NULL;
     list_head_1.list_length = 0;
 
-    //¶¨Òå±íÍ·£¬LRU_2;
+    // initialize the LRU_2;
     dl_list_head   list_head_2;
     dl_list_head * list_head_2_p;
     list_head_2_p = &list_head_2;
-    //³õÊ¼»¯±íÍ·
+
     list_head_2.head = NULL;
     list_head_2.tail = NULL;
     list_head_2.list_length = 0;
@@ -116,7 +143,8 @@ int main(int argc,char*argv[])
     int cache_hit = 0;
     int cache_miss = 0;
     float cache_hit_rate = 0;
-    int overflow_time = 0;
+    int overflow_time_pkt = 0;
+    int overflow_time_byte = 0;
 
     int total_flow_cnt = 0;  //trace all flow count;
     double total_byte_cnt = 0;
@@ -133,9 +161,6 @@ int main(int argc,char*argv[])
 
     /*throughput*/
     double access_time = 0;//can be used in this trace
-    double byte_access_time = 0;
-    double pkt_access_time = 0;
-    double comb_access_time = 0;
 
     //off-chip DRAM, debug, 20180129
     int dram_consumption = 0; //dram: once off-chip write, it will take one entry in dram.
@@ -144,7 +169,6 @@ int main(int argc,char*argv[])
     while(fscanf(fp, "%d %d", &Flow_ID_temp, &ByteCnt_temp) != EOF)
     {
         //for pkt counting
-        //ByteCnt_temp = 1;
         PktCnt_temp = 1;
 
         if(Flow_ID_temp > total_flow_cnt)  //record the total flow count
@@ -163,6 +187,7 @@ int main(int argc,char*argv[])
 
         packet * found_item;
         found_item = find_user(Flow_ID_temp);
+        //access_time += ON_CHIP_TIME; // time of searching two LRU
 
         if(found_item == NULL)//cache miss
         {
@@ -207,9 +232,7 @@ int main(int argc,char*argv[])
         {
             if(found_item->hash_to_list->list_head_p == list_head_1_p)//LRU_1 hit
             {
-                if(found_item -> hash_to_list -> cached_value + ByteCnt_temp >= THRES_BYTE)//from LRU_1 to LRU_2
-                    //found_item -> hash_to_list -> cached_value + ByteCnt_temp >= THRES_BYTE
-                    //found_item -> hash_to_list -> cached_pkt + PktCnt_temp >= THRES_PKT
+                if((found_item -> hash_to_list -> cached_value + ByteCnt_temp >= THRES_BYTE && !use_pkt_th) || (found_item -> hash_to_list -> cached_pkt + PktCnt_temp >= THRES_PKT && use_pkt_th))//from LRU_1 to LRU_2
                 {
                     //delete item from LRU_1
                     ByteCnt_temp = found_item->hash_to_list->cached_value + ByteCnt_temp;
@@ -242,7 +265,7 @@ int main(int argc,char*argv[])
                         //overflow to SRAM
                         if(symb_value_byte[temp_key] == 0)
                                 sram_consumption ++;
-                        
+
                         if(scale_value_byte[temp_key] == 0)
                         {
                             symb_value_byte[temp_key] += (long)ByteCnt_temp;
@@ -315,8 +338,8 @@ int main(int argc,char*argv[])
                         }
 
                         /*throughput*/
-                        //only one write and two read of on-chip cache and update and one read and one write to off-chip SRAM;
-                        access_time += ON_CHIP_TIME*3 + OFF_CHIP_TIME*2 + CALC_TIME;
+                        //only one write and two read of on-chip cache -> then update -> one read and one write to off-chip SRAM;
+                        access_time += ON_CHIP_TIME*3 + OFF_CHIP_TIME + CALC_TIME;
                         sram_trans += 2;
 
                     }
@@ -357,14 +380,18 @@ int main(int argc,char*argv[])
             {
                 ByteCnt_temp = found_item->hash_to_list->cached_value + ByteCnt_temp;
                 PktCnt_temp = found_item->hash_to_list->cached_pkt + PktCnt_temp;
-                Byte_upscale_temp = 1;//update recording: 1,2,4 stands for: unupdated,update,new update
-                Pkt_upscale_temp = 1;
-                if(ByteCnt_temp > LRU2_BYTE_CNT_WIDTH)
+                if(ByteCnt_temp > LRU2_BYTE_CNT_WIDTH || PktCnt_temp > LRU2_PKT_CNT_WIDTH)
                 {
-                    Byte_upscale_temp = 2;
-                    if(symb_value_byte[Flow_ID_temp] == 0)
-                        Byte_upscale_temp = 4;
+                    if(ByteCnt_temp > LRU2_BYTE_CNT_WIDTH)
+                        overflow_time_byte ++;
+                    if(PktCnt_temp > LRU2_PKT_CNT_WIDTH)
+                        overflow_time_pkt ++;
+                    if(!(symb_value_byte[Flow_ID_temp] + symb_value_pkt[Flow_ID_temp]))
+                    {
+                        sram_consumption ++;
+                    }
                     //overflow
+                    //upscale SRAM byte counter
                     if(scale_value_byte[Flow_ID_temp] == 0)
                     {
                         symb_value_byte[Flow_ID_temp] += (long)ByteCnt_temp;
@@ -399,14 +426,7 @@ int main(int argc,char*argv[])
                     {
                         symb_value_byte[Flow_ID_temp] += OEFUpdate(symb_value_byte[Flow_ID_temp], (long)ByteCnt_temp, scale_byte_11);
                     }
-                    ByteCnt_temp = 0;
-                    byte_access_time += CALC_TIME + OFF_CHIP_TIME*2;
-                }
-                if(PktCnt_temp > LRU2_PKT_CNT_WIDTH)
-                {
-                    Pkt_upscale_temp = 2;
-                    if(symb_value_pkt[Flow_ID_temp] == 0)
-                        Pkt_upscale_temp = 4;
+
                     if(scale_value_pkt[Flow_ID_temp] == 0)
                     {
                         symb_value_pkt[Flow_ID_temp] += (long)PktCnt_temp;
@@ -417,6 +437,8 @@ int main(int argc,char*argv[])
                             upscale_cnt_pkt++;
                         }
                     }
+
+                    //upscale packet counter
                     else if(scale_value_pkt[Flow_ID_temp] == 1)//scale_pkt_11
                     {
                         symb_value_pkt[Flow_ID_temp] += OEFUpdate(symb_value_pkt[Flow_ID_temp], (long)PktCnt_temp, scale_pkt_11);
@@ -441,18 +463,10 @@ int main(int argc,char*argv[])
                     {
                         symb_value_pkt[Flow_ID_temp] += OEFUpdate(symb_value_pkt[Flow_ID_temp], (long)PktCnt_temp, scale_pkt_8);
                     }
+                    ByteCnt_temp = 0;
                     PktCnt_temp = 0;
-                    pkt_access_time += CALC_TIME + OFF_CHIP_TIME*2;
-                }
-                if(Pkt_upscale_temp + Byte_upscale_temp > 2)
-                {
-                    overflow_time ++;
-                    comb_access_time += CALC_TIME + OFF_CHIP_TIME*2;
                     sram_trans += 2;
-                }
-                if(Pkt_upscale_temp + Byte_upscale_temp > 4)
-                {
-                    sram_consumption ++;
+                    access_time += CALC_TIME + OFF_CHIP_TIME;
                 }
 
                 delete_node_pointed(list_head_2_p, found_item->hash_to_list);
@@ -476,10 +490,6 @@ int main(int argc,char*argv[])
 
         }
     }
-
-    pkt_access_time += access_time;
-    byte_access_time += access_time;
-    access_time += comb_access_time;
 
     //write LRU_1 to off-chip DRAM
     cache_node = list_head_1.head;
@@ -582,8 +592,15 @@ int main(int argc,char*argv[])
     }
 
 
+<<<<<<< HEAD
     FILE * fp_1 = fopen("data\\output\\upscaled_cached_DISCO_byte.txt","w");
     FILE * fp_2 = fopen("data\\output\\uncached_DISCO_byte.txt","w");
+=======
+    temp_string = base_folder + "data\\output\\upscaled_cached_DISCO_byte.txt";
+    FILE * fp_1 = fopen(temp_string.c_str(),"w");
+    temp_string = base_folder + "data\\output\\uncached_DISCO_byte.txt";
+    FILE * fp_2 = fopen(temp_string.c_str(),"w");
+>>>>>>> lru2logic
     double esti_value_byte = 0;
     double esti_error_byte = 0;
 
@@ -651,9 +668,16 @@ int main(int argc,char*argv[])
     rel_error_cached_byte = rel_error_cached_byte/(double)(total_flow_cnt+1);
     rel_error_un_byte     = rel_error_un_byte/(double)(total_flow_cnt+1);
 
+    temp_string = base_folder + "data\\output\\upscaled_cached_DISCO_pkt.txt";
+    FILE * fp_3 = fopen(temp_string.c_str(),"w");
+    temp_string = base_folder + "data\\output\\uncached_DISCO_pkt.txt";
+    FILE * fp_4 = fopen(temp_string.c_str(),"w");
 
+<<<<<<< HEAD
     FILE * fp_3 = fopen("data\\output\\upscaled_cached_DISCO_pkt.txt","w");
     FILE * fp_4 = fopen("data\\output\\uncached_DISCO_pkt.txt","w");
+=======
+>>>>>>> lru2logic
     double esti_value_pkt = 0;
     double esti_error_pkt = 0;
 
@@ -732,24 +756,6 @@ int main(int argc,char*argv[])
     double gbps_un = 0;
     gbps_un = pow(10.0, 9.0)/1024.0/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME)*(double)aver_pkt_size*8.0;
 
-    double pkt_mpps = 0;
-    pkt_mpps = (double)total_pkt_cnt*pow(10.0, 9.0)/1024.0/1024.0/pkt_access_time;
-    double pkt_gbps = 0;
-    pkt_gbps = total_byte_cnt*pow(10.0, 9.0)*8.0/1024.0/1024.0/1024.0/pkt_access_time;
-    double pkt_mpps_un = 0;
-    pkt_mpps_un = pow(10.0, 9.0)/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME);
-    double pkt_gbps_un = 0;
-    pkt_gbps_un = pow(10.0, 9.0)/1024.0/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME)*(double)aver_pkt_size*8.0;
-
-    double byte_mpps = 0;
-    byte_mpps = (double)total_pkt_cnt*pow(10.0, 9.0)/1024.0/1024.0/byte_access_time;
-    double byte_gbps = 0;
-    byte_gbps = total_byte_cnt*pow(10.0, 9.0)*8.0/1024.0/1024.0/1024.0/byte_access_time;
-    double byte_mpps_un = 0;
-    byte_mpps_un = pow(10.0, 9.0)/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME);
-    double byte_gbps_un = 0;
-    byte_gbps_un = pow(10.0, 9.0)/1024.0/1024.0/1024.0/(double)(OFF_CHIP_TIME*2 + CALC_TIME)*(double)aver_pkt_size*8.0;
-
     printf("LRU_1 module's byte counter's max value = %10d.\n", LRU1_byte_counter_max);
     printf("LRU_1 module's packet counter's max value = %10d.\n", LRU1_pkt_counter_max);
     printf("total byte count is = %10f.\n", total_byte_cnt);
@@ -762,7 +768,8 @@ int main(int argc,char*argv[])
 
     printf("number of flows = %d.\n", total_flow_cnt+1);
     printf("number of packets = %d.\n", total_pkt_cnt);
-    printf("overflow times = %d.\n", overflow_time);
+    printf("pkt counter overflow times = %10d.\n", overflow_time_pkt);
+    printf("byte counter overflow times = %10d.\n", overflow_time_byte);
     printf("cache hit times = %d, cache miss time = %d.\n", cache_hit, cache_miss);
     cache_hit_rate = (float)cache_hit/(cache_hit + cache_miss);
     printf("cache hit rate = %f.\n", cache_hit_rate);
@@ -784,16 +791,6 @@ int main(int argc,char*argv[])
     printf("cached throughput Gbps = %lf.\n", gbps);
     printf("uncached throughput Mpps = %lf.\n", mpps_un);
     printf("uncached throughput Gbps = %lf.\n", gbps_un);
-
-    printf("cached throughput pkt_mpps = %lf.\n", pkt_mpps);
-    printf("cached throughput pkt_gbps = %lf.\n", pkt_gbps);
-    printf("uncached throughput pkt_mpps = %lf.\n", pkt_mpps_un);
-    printf("uncached throughput pkt_gbps = %lf.\n", pkt_gbps_un);
-
-    printf("cached throughput byte_mpps = %lf.\n", byte_mpps);
-    printf("cached throughput byte_gbps = %lf.\n", byte_gbps);
-    printf("uncached throughput byte_mpps = %lf.\n", byte_mpps_un);
-    printf("uncached throughput byte_gbps = %lf.\n", byte_gbps_un);
 
     fclose(fp);
     fclose(fp_1);
